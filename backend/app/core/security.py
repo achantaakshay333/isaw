@@ -3,6 +3,12 @@ from typing import Any, Union
 from jose import jwt
 from passlib.context import CryptContext
 from .config import settings
+import bcrypt
+
+# Monkey-patch bcrypt to fix passlib 1.7.4 compatibility with bcrypt 4.0+
+# See: https://github.com/pyca/bcrypt/issues/684
+if not hasattr(bcrypt, "__about__"):
+    bcrypt.__about__ = type('obj', (object,), {'__version__': bcrypt.__version__})
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
