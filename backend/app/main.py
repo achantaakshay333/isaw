@@ -17,10 +17,11 @@ app = FastAPI(title=settings.PROJECT_NAME)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # For production, you can restrict this to your actual domain
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 @app.on_event("startup")
@@ -38,8 +39,6 @@ async def startup_event():
         
     except Exception as e:
         logger.error(f"❌ DATABASE CONNECTION FAILED: {str(e)}")
-        # In a real production app, you might want to exit here if the DB is critical
-        # but for now, we'll log it for visibility in Railway console.
 
 app.include_router(auth.router)
 app.include_router(habits.router)
@@ -52,17 +51,23 @@ app.include_router(notes.router)
 
 @app.get("/")
 def read_root():
-    return {"message": "API is working", "status": "online"}
+    return {"message": "Success! ISAW Backend is Online", "status": "online"}
 
-@app.get("/health")
-def health_check():
-    """Explicit health check for Railway/monitoring."""
+@app.get("/test-db")
+def test_db_connectivity():
+    """Explicit endpoint to verify DB access from Railway."""
     try:
         with engine.connect() as connection:
             connection.execute(text("SELECT 1"))
-        return {"status": "healthy", "database": "connected"}
+        return {"status": "connected", "message": "Database is reachable from Railway"}
     except Exception as e:
-        return {"status": "unhealthy", "database": str(e)}
+        logger.error(f"Test-DB failed: {str(e)}")
+        return {"status": "failed", "error": str(e)}
+
+@app.get("/health")
+def health_check():
+    """Standard health check for monitoring."""
+    return {"status": "alive"}
 
 if __name__ == "__main__":
     import os
