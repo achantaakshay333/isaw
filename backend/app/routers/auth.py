@@ -24,17 +24,21 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 @router.post("/signup", response_model=UserOut)
 def signup(user: UserCreate, db: Session = Depends(get_db)):
     """Creates a new user account with SHA-256 pre-hashing + Bcrypt."""
+    logger.info(f"🆕 STEP 1: Starting signup flow for email: {user.email}")
     try:
         # Check if email exists before attempting creation
         db_user = db.query(User).filter(User.email == user.email).first()
         if db_user:
+            logger.warning(f"⚠️ Signup failed: Email {user.email} already exists.")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, 
                 detail="Email already registered"
             )
         
+        logger.info(f"🆕 STEP 2: Pre-hashing password for: {user.email}")
         hashed_password = get_password_hash(user.password)
         
+        logger.info(f"🆕 STEP 3: Creating User object for: {user.email}")
         new_user = User(
             email=user.email,
             hashed_password=hashed_password,
@@ -42,68 +46,74 @@ def signup(user: UserCreate, db: Session = Depends(get_db)):
             goals=user.goals
         )
         db.add(new_user)
+        
+        logger.info(f"🆕 STEP 4: Committing to Database for: {user.email}")
         db.commit()
         db.refresh(new_user)
-        logger.info(f"✅ Successfully created user: {user.email}")
+        logger.info(f"✅ STEP 5: Signup SUCCESS for: {user.email}")
         return new_user
         
     except IntegrityError as e:
         db.rollback()
-        logger.warning(f"⚠️ Signup failed: Duplicate email {user.email}")
+        logger.warning(f"⚠️ Signup failed: Duplicate email {user.email} (IntegrityError)")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User with this email already exists"
         )
     except HTTPException as e:
-        # Re-raise HTTPExceptions from logic above
         raise e
     except Exception as e:
         db.rollback()
-        logger.error(f"❌ SIGNUP CRITICAL ERROR: {str(e)}", exc_info=True)
+        logger.error(f"❌ SIGNUP CRITICAL ERROR for {user.email}: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An internal server error occurred during signup"
+            detail=f"Signup crashed: {str(e)}"
         )
 
 @router.post("/login", response_model=Token)
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    """Login flow with detailed logging for debugging."""
+    logger.info(f"🔑 STEP 1: Starting login flow for: {form_data.username}")
     try:
         user = db.query(User).filter(User.email == form_data.username).first()
         
         if not user:
-            logger.debug(f"🔍 Login failed: User with email {form_data.username} not found.")
+            logger.warning(f"❌ STEP 2: User not found in database: {form_data.username}")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="User not found",
                 headers={"WWW-Authenticate": "Bearer"},
             )
         
-        logger.debug(f"👤 User found: {user.email}. Proceeding to password verification...")
+        logger.info(f"👤 STEP 2: User found: {user.email}. Entering password verification...")
             
         # Password verification triggers bcrypt
         is_verified = verify_password(form_data.password, user.hashed_password)
         
         if not is_verified:
-            logger.debug(f"❌ Login failed: Incorrect password for user {user.email}.")
+            logger.warning(f"❌ STEP 3: Password verification FAILED for: {user.email}")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect password",
                 headers={"WWW-Authenticate": "Bearer"},
             )
             
-        logger.info(f"✅ Login successful for user: {user.email}")
-            
+        logger.info(f"✅ STEP 3: Password verification SUCCESS for: {user.email}")
+        
+        logger.info(f"🔑 STEP 4: Issuing JWT Token for: {user.email}")
         access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(
             subject=user.email, expires_delta=access_token_expires
         )
+        logger.info(f"🎉 Login COMPLETE for: {user.email}")
         return {"access_token": access_token, "token_type": "bearer"}
     except HTTPException as e:
         raise e
     except Exception as e:
+        logger.error(f"❌ LOGIN CRITICAL ERROR for {form_data.username}: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Login error: {str(e)}"
+            detail=f"Login crashed: {str(e)}"
         )
 
 @router.post("/google", response_model=Token)

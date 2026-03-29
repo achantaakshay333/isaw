@@ -32,21 +32,36 @@ def _preprocess_password(password: str) -> str:
     Bcrypt has a 72-byte limit. Pre-hashing with SHA-256 hexdigest 
     ensures passwords result in a fixed 64-character string.
     """
+    if not password:
+        logger.error("❌ Attempted to hash/verify an empty password")
+        raise ValueError("Password cannot be empty")
+        
     processed = hashlib.sha256(password.encode("utf-8")).hexdigest()
-    logger.debug(f"Preprocessed password length: {len(processed)} chars")
+    logger.info(f"✅ Preprocessed password length: {len(processed)} chars")
     return processed
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verifies a plain password against the hashed version."""
     try:
+        if not hashed_password:
+            logger.warning("⚠️ Cannot verify against empty hash")
+            return False
+            
         preprocessed = _preprocess_password(plain_password)
         result = pwd_context.verify(preprocessed, hashed_password)
+        logger.info(f"🔑 Password verification result: {result}")
         return result
     except Exception as e:
-        logger.error(f"Error during password verification: {str(e)}")
+        logger.error(f"❌ Error during password verification: {str(e)}")
         return False
 
 def get_password_hash(password: str) -> str:
     """Hashes a password with SHA-256 then Bcrypt."""
-    preprocessed = _preprocess_password(password)
-    return pwd_context.hash(preprocessed)
+    try:
+        preprocessed = _preprocess_password(password)
+        hashed = pwd_context.hash(preprocessed)
+        logger.info("✅ Successfully generated password hash.")
+        return hashed
+    except Exception as e:
+        logger.error(f"❌ Error during password hashing: {str(e)}")
+        raise e
