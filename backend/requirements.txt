@@ -6,6 +6,7 @@ pydantic[email]
 python-dotenv
 python-jose[cryptography]
 passlib[bcrypt]
+bcrypt==3.2.0
 python-multipart
 alembic
 pytest

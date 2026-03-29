@@ -32,7 +32,7 @@ class Habit(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     owner = relationship("User", back_populates="habits")
-    logs = relationship("DailyTrackingLog", primaryjoin="and_(Habit.id==foreign(DailyTrackingLog.item_id), DailyTrackingLog.item_type=='Habit')")
+    logs = relationship("DailyTrackingLog", primaryjoin="and_(Habit.id==foreign(DailyTrackingLog.item_id), DailyTrackingLog.item_type=='Habit')", overlaps="logs")
 
 class DailyTrackingLog(Base):
     __tablename__ = "daily_tracking_logs"
@@ -61,7 +61,7 @@ class Schedule(Base):
     description = Column(Text, nullable=True) # Added for unified optional notes
 
     owner = relationship("User", back_populates="schedules")
-    logs = relationship("DailyTrackingLog", primaryjoin="and_(Schedule.id==foreign(DailyTrackingLog.item_id), DailyTrackingLog.item_type=='Schedule')")
+    logs = relationship("DailyTrackingLog", primaryjoin="and_(Schedule.id==foreign(DailyTrackingLog.item_id), DailyTrackingLog.item_type=='Schedule')", overlaps="logs")
 
 class LearningLog(Base):
     __tablename__ = "learning_logs"
@@ -75,7 +75,7 @@ class LearningLog(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     owner = relationship("User", back_populates="learning_logs")
-    logs = relationship("DailyTrackingLog", primaryjoin="and_(LearningLog.id==foreign(DailyTrackingLog.item_id), DailyTrackingLog.item_type=='Learning')")
+    logs = relationship("DailyTrackingLog", primaryjoin="and_(LearningLog.id==foreign(DailyTrackingLog.item_id), DailyTrackingLog.item_type=='Learning')", overlaps="logs")
 
 class Task(Base):
     __tablename__ = "tasks"
@@ -89,7 +89,7 @@ class Task(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     owner = relationship("User", back_populates="tasks")
-    logs = relationship("DailyTrackingLog", primaryjoin="and_(Task.id==foreign(DailyTrackingLog.item_id), DailyTrackingLog.item_type=='Task')")
+    logs = relationship("DailyTrackingLog", primaryjoin="and_(Task.id==foreign(DailyTrackingLog.item_id), DailyTrackingLog.item_type=='Task')", overlaps="logs")
 
 class Note(Base):
     __tablename__ = "notes"
