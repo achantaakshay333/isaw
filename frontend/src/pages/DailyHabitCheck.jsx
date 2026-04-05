@@ -19,7 +19,7 @@ const DailyHabitCheck = () => {
     try {
       const dateString = format(selectedDate, 'yyyy-MM-dd');
       const [habitsRes, trackingRes] = await Promise.all([
-        api.get('/habits'),
+        api.get('/habits/'),
         api.get(`/tracking/?target_date=${dateString}&item_type=Habit`)
       ]);
       setHabits(habitsRes.data);

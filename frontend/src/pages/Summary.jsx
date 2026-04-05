@@ -18,10 +18,10 @@ const Summary = () => {
     setLoading(true);
     try {
       const [habitsRes, tasksRes, learningRes, scheduleRes] = await Promise.all([
-        api.get('/habits'),
-        api.get('/tasks'),
-        api.get('/learning'),
-        api.get('/schedule')
+        api.get('/habits/'),
+        api.get('/tasks/'),
+        api.get('/learning/'),
+        api.get('/schedule/')
       ]);
       
       setData({

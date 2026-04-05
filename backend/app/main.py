@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 from .core.config import settings
 from .routers import auth, habits, schedule, learning, tasks, insights, tracking, notes
 from .core.database import engine, Base
@@ -14,6 +15,9 @@ logger = logging.getLogger(__name__)
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title=settings.PROJECT_NAME)
+
+# Ensure FastAPI knows it's behind a proxy (for HTTPS redirects)
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
 
 app.add_middleware(
     CORSMiddleware,

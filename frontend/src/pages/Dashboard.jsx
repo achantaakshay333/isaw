@@ -36,10 +36,10 @@ const Dashboard = () => {
       const dateStr = format(date, 'yyyy-MM-dd');
       
       const [insightsRes, habitsRes, tasksRes, learningRes] = await Promise.all([
-        api.get('/insights'),
-        api.get('/habits'),
-        api.get('/tasks'),
-        api.get('/learning')
+        api.get('/insights/'),
+        api.get('/habits/'),
+        api.get('/tasks/'),
+        api.get('/learning/')
       ]);
 
       setInsights(insightsRes.data);

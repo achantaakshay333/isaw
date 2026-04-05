@@ -16,7 +16,7 @@ const Habits = () => {
 
   const fetchHabits = async () => {
     try {
-      const res = await api.get('/habits');
+      const res = await api.get('/habits/');
       setHabits(res.data);
     } catch (err) {
       console.error(err);
