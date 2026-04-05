@@ -21,11 +21,10 @@ app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # For production, you can restrict this to your actual domain
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["*"]
 )
 
 @app.on_event("startup")

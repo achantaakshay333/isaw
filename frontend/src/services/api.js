@@ -28,7 +28,7 @@ api.interceptors.response.use(
       // Possible network or DNS error
       console.error('❌ Network/DNS Error:', error.message);
       if (error.code === 'ERR_NETWORK') {
-        alert('🌐 Connection Failed: Could not reach the backend. Please verify your API URL in .env and ensure the backend is DEPLOYED.');
+        alert(`🌐 Connection Failed: Could not reach the backend at: ${error.config.baseURL || BASE_URL}\n\nPlease check your internet and verify your API URL in .env or Hosting Dashboard.`);
       }
     }
     if (error.response && error.response.status === 401) {
